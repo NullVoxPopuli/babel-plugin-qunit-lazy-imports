@@ -14,7 +14,7 @@ let template;
     if (template) return;
     if (!maybeTemplate) return;
 
-    if ('ast' in maybeTemplate) {
+    if ("ast" in maybeTemplate) {
       template = maybeTemplate;
     }
   }
@@ -22,7 +22,7 @@ let template;
   setIfProper(_template);
   setIfProper(_template.default);
   setIfProper(_template.default?.default);
-})()
+})();
 
 /**
  * @param options - an object with optional startsWith: [string] or matches: [RegEx]
@@ -55,7 +55,6 @@ export default function qunitLazyImportsPlugin(babel, options) {
     return false;
   }
 
-
   if (!options.startsWith && !options.matches) {
     return { name: "qunit-lazy-imports:noop", visitor: {} };
   }
@@ -64,7 +63,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
     name: "qunit-lazy-imports",
     visitor: {
       ImportDeclaration(path, state) {
-        if (path.node.source.value === 'qunit') {
+        if (path.node.source.value === "qunit") {
           state.isUsingQunit = true;
         }
 
@@ -87,11 +86,11 @@ export default function qunitLazyImportsPlugin(babel, options) {
       /**
        * if we have made changes
        */
-      'Program': {
+      Program: {
         exit(path, state) {
           if (!state.isUsingQunit) return;
           if (!state.importsToMove) return;
-          if (state.importsToMove.length === 0) return; 
+          if (state.importsToMove.length === 0) return;
 
           for (let moveThisImport of state.importsToMove) {
             for (let specifier of moveThisImport.names) {
@@ -101,7 +100,6 @@ export default function qunitLazyImportsPlugin(babel, options) {
 
             moveThisImport.path.remove();
           }
-
         },
       },
       /**
@@ -114,7 +112,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
         let module = path.scope.bindings.module;
         if (!module?.path?.parent) return;
         if (module.path.parent?.type !== "ImportDeclaration") return;
-        if (module.path.parent.source.value !== 'qunit') return;
+        if (module.path.parent.source.value !== "qunit") return;
 
         /**
          * Last argument of module() is the function callback.
@@ -131,11 +129,11 @@ export default function qunitLazyImportsPlugin(babel, options) {
           (async () => {
             let module = await import('${specifier.source}');
             ${specifier.names
-                .map(
-                  (namePair) =>
-                    `${namePair.localName} = module.${namePair.importName};`,
-                )
-                .join("\n")}
+              .map(
+                (namePair) =>
+                  `${namePair.localName} = module.${namePair.importName};`,
+              )
+              .join("\n")}
           })()`;
           })
           .join(",\n");
