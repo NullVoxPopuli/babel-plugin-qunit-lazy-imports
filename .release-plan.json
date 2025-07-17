@@ -1,0 +1,22 @@
+{
+  "solution": {
+    "babel-plugin-qunit-lazy-imports": {
+      "impact": "minor",
+      "oldVersion": "1.0.0",
+      "newVersion": "1.1.0",
+      "tagName": "latest",
+      "constraints": [
+        {
+          "impact": "minor",
+          "reason": "Appears in changelog section :rocket: Enhancement"
+        },
+        {
+          "impact": "patch",
+          "reason": "Appears in changelog section :house: Internal"
+        }
+      ],
+      "pkgJSONPath": "./package.json"
+    }
+  },
+  "description": "## Release (2025-07-17)\n\n* babel-plugin-qunit-lazy-imports 1.1.0 (minor)\n\n#### :rocket: Enhancement\n* `babel-plugin-qunit-lazy-imports`\n  * [#5](https://github.com/NullVoxPopuli/babel-plugin-qunit-lazy-imports/pull/5) Add README. more tests ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n  * [#1](https://github.com/NullVoxPopuli/babel-plugin-qunit-lazy-imports/pull/1) Initial implementation ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n\n#### :house: Internal\n* `babel-plugin-qunit-lazy-imports`\n  * [#3](https://github.com/NullVoxPopuli/babel-plugin-qunit-lazy-imports/pull/3) Only publish the src  directory ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n  * [#2](https://github.com/NullVoxPopuli/babel-plugin-qunit-lazy-imports/pull/2) Setup Release plan ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n\n#### Committers: 1\n- [@NullVoxPopuli](https://github.com/NullVoxPopuli)\n"
+}
