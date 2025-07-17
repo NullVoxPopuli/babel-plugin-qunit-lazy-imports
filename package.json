@@ -12,15 +12,26 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:NullVoxPopuli/babel-plugin-qunit-lazy-imports.git"
+    "url": "git+ssh://git@github.com:NullVoxPopuli/babel-plugin-qunit-lazy-imports.git"
   },
   "license": "MIT",
-  "author": "",
+  "author": [
+    "NullVoxPopuli",
+    "mansona"
+  ],
   "type": "module",
   "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
   "scripts": {
     "format": "prettier . --write",
-    "lint": "prettier . --check",
+    "lint:prettier": "prettier . --check",
+    "lint:package": "publint",
+    "lint": "concurrently \"npm:lint:*(!fix)\" --names \"lint:\" --prefixColors auto",
     "test": "pnpm run test:unit && pnpm run test:integration",
     "test:integration": "cd test-app && pnpm test",
     "test:unit": "vitest",
@@ -35,8 +46,10 @@
     "@babel/parser": "^7.23.0",
     "@babel/traverse": "^7.23.0",
     "@babel/types": "^7.23.0",
+    "concurrently": "^9.2.0",
     "prettier": "^3.5.3",
     "prettier-plugin-ember-template-tag": "^2.0.6",
+    "publint": "^0.3.12",
     "release-plan": "^0.16.0",
     "vitest": "^3.2.4"
   },
