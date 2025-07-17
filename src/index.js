@@ -1,12 +1,33 @@
 import assert from "node:assert";
-import template from "@babel/template";
+import * as _template from "@babel/template";
+
+let template;
+
+/**
+ * Babel is published weird
+ *
+ * They try to publish cjs with some esm compat, but they are ultimately cjs.
+ * We try to find their "exports.default" -- whichever has the 'ast' function on it.
+ */
+(() => {
+  function setIfProper(maybeTemplate) {
+    if (template) return;
+    if (!maybeTemplate) return;
+
+    if ('ast' in maybeTemplate) {
+      template = maybeTemplate;
+    }
+  }
+
+  setIfProper(_template);
+  setIfProper(_template.default);
+  setIfProper(_template.default?.default);
+})()
 
 /**
  * @param options - an object with optional startsWith: [string] or matches: [RegEx]
  */
 export default function qunitLazyImportsPlugin(babel, options) {
-  const { types: t } = babel;
-
   if (options.startsWith) {
     assert(
       Array.isArray(options.startsWith),
@@ -86,17 +107,17 @@ export default function qunitLazyImportsPlugin(babel, options) {
           (async () => {
             let module = await import('${specifier.source}');
             ${specifier.names
-              .map(
-                (namePair) =>
-                  `${namePair.localName} = module.${namePair.importName};`,
-              )
-              .join("\n")}
+                .map(
+                  (namePair) =>
+                    `${namePair.localName} = module.${namePair.importName};`,
+                )
+                .join("\n")}
           })()`;
           })
           .join(",\n");
 
         let newCode = template.ast(`
-          hooks.beforeAll(async () => {
+          hooks.before(async () => {
             await Promise.all([
                 ${importsForBeforeAll}
             ]);
