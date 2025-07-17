@@ -13,10 +13,9 @@ function transform(code, config) {
   return result.code;
 }
 
-describe("The babel plugin", () => {
-  it("doesn't change anything if you have not provided a startsWith or matches config", () => {
-    expect(
-      transform(`
+it("doesn't change anything if you have not provided a startsWith or matches config", () => {
+  expect(
+    transform(`
       import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
 
@@ -27,8 +26,8 @@ describe("The babel plugin", () => {
         });
       });
 `),
-      {},
-    ).toMatchInlineSnapshot(`
+    {},
+  ).toMatchInlineSnapshot(`
   "import { visit, currentURL } from '@ember/test-helpers';
 import { module, test } from 'qunit';
 module('Acceptance | test', function (hooks) {
@@ -38,12 +37,12 @@ module('Acceptance | test', function (hooks) {
   });
 });"
 `);
-  });
+});
 
-  it("moves imports from fancy-app when startsWith has been provided", () => {
-    expect(
-      transform(
-        `
+it("moves imports from fancy-app when startsWith has been provided", () => {
+  expect(
+    transform(
+      `
       import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
       import someFancyThing from 'fancy-app/some/path';
@@ -56,11 +55,11 @@ module('Acceptance | test', function (hooks) {
         });
       });
 `,
-        {
-          startsWith: ["fancy-app/"],
-        },
-      ),
-    ).toMatchInlineSnapshot(`
+      {
+        startsWith: ["fancy-app/"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
   "import { visit, currentURL } from '@ember/test-helpers';
   import { module, test } from 'qunit';
   let someFancyThing;
@@ -78,12 +77,12 @@ module('Acceptance | test', function (hooks) {
     });
   });"
 `);
-  });
+});
 
-  it("moves named imports correctly", () => {
-    expect(
-      transform(
-        `
+it("moves named imports correctly", () => {
+  expect(
+    transform(
+      `
       import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
       import someFancyThing, { otherFancyThing } from 'fancy-app/some/path';
@@ -96,11 +95,11 @@ module('Acceptance | test', function (hooks) {
         });
       });
 `,
-        {
-          startsWith: ["fancy-app/"],
-        },
-      ),
-    ).toMatchInlineSnapshot(`
+      {
+        startsWith: ["fancy-app/"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
   "import { visit, currentURL } from '@ember/test-helpers';
   import { module, test } from 'qunit';
   let someFancyThing;
@@ -120,12 +119,12 @@ module('Acceptance | test', function (hooks) {
     });
   });"
 `);
-  });
+});
 
-  it("moves imports from fancy-app when startsWith has been provided and uses the local name of hooks", () => {
-    expect(
-      transform(
-        `
+it("moves imports from fancy-app when startsWith has been provided and uses the local name of hooks", () => {
+  expect(
+    transform(
+      `
       import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
       import someFancyThing from 'fancy-app/some/path';
@@ -138,11 +137,11 @@ module('Acceptance | test', function (hooks) {
         });
       });
 `,
-        {
-          startsWith: ["fancy-app/"],
-        },
-      ),
-    ).toMatchInlineSnapshot(`
+      {
+        startsWith: ["fancy-app/"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
       "import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
       let someFancyThing;
@@ -160,12 +159,12 @@ module('Acceptance | test', function (hooks) {
         });
       });"
     `);
-  });
+});
 
-  it("does not conflict or mess with existing beforeAll", () => {
-    expect(
-      transform(
-        `
+it("does not conflict or mess with existing beforeAll", () => {
+  expect(
+    transform(
+      `
       import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
       import someFancyThing from 'fancy-app/some/path';
@@ -182,9 +181,9 @@ module('Acceptance | test', function (hooks) {
         });
       });
 `,
-        { startsWith: ["fancy-app/"] },
-      ),
-    ).toMatchInlineSnapshot(`
+      { startsWith: ["fancy-app/"] },
+    ),
+  ).toMatchInlineSnapshot(`
       "import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
       let someFancyThing;
@@ -205,5 +204,150 @@ module('Acceptance | test', function (hooks) {
         });
       });"
     `);
-  });
+});
+
+it("moves multiple imports correctly", () => {
+  expect(
+    transform(
+      `
+      import { visit, currentURL } from '@ember/test-helpers';
+      import { module, test } from 'qunit';
+      import someFancyThing, { otherFancyThing } from 'fancy-app/some/path';
+      import { otherFancyThing2 } from 'fancy-app/some/other/path';
+      import aThing from 'fancy-app/some/other/path';
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          await visit('/');
+          assert.strictEqual(currentURL(), '/');
+          console.log(someFancyThing, someFancyThing2, aThing)
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app/"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
+      "import { visit, currentURL } from '@ember/test-helpers';
+      import { module, test } from 'qunit';
+      let someFancyThing;
+      let otherFancyThing;
+      let otherFancyThing2;
+      let aThing;
+      module('Acceptance | test', function (hooks) {
+        hooks.beforeAll(async () => {
+          await Promise.all([(async () => {
+            let module = await import('fancy-app/some/path');
+            someFancyThing = module.default;
+            otherFancyThing = module.otherFancyThing;
+          })(), (async () => {
+            let module = await import('fancy-app/some/other/path');
+            otherFancyThing2 = module.otherFancyThing2;
+          })(), (async () => {
+            let module = await import('fancy-app/some/other/path');
+            aThing = module.default;
+          })()]);
+        });
+        test('should work', async function (assert) {
+          await visit('/');
+          assert.strictEqual(currentURL(), '/');
+          console.log(someFancyThing, someFancyThing2, aThing);
+        });
+      });"
+    `);
+});
+
+it("moves aliased imports", () => {
+  expect(
+    transform(
+      `
+      import { visit, currentURL } from '@ember/test-helpers';
+      import { module, test } from 'qunit';
+      import { default as foo, someFancyThing as bar } from 'fancy-app/some/path';
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          await visit('/');
+          assert.strictEqual(currentURL(), '/');
+          console.log(someFancyThing)
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app/"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
+      "import { visit, currentURL } from '@ember/test-helpers';
+      import { module, test } from 'qunit';
+      let foo;
+      let bar;
+      module('Acceptance | test', function (hooks) {
+        hooks.beforeAll(async () => {
+          await Promise.all([(async () => {
+            let module = await import('fancy-app/some/path');
+            foo = module.default;
+            bar = module.someFancyThing;
+          })()]);
+        });
+        test('should work', async function (assert) {
+          await visit('/');
+          assert.strictEqual(currentURL(), '/');
+          console.log(someFancyThing);
+        });
+      });"
+    `);
+});
+
+it("moves multiple different imports correctly", () => {
+  expect(
+    transform(
+      `
+      import { visit, currentURL } from '@ember/test-helpers';
+      import { module, test } from 'qunit';
+      import someFancyThing, { otherFancyThing } from 'fancy-app/some/path';
+      import { otherFancyThing2 } from 'fancy-app/some/other/path';
+      import aThing from 'big-library/some/other/path';
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          await visit('/');
+          assert.strictEqual(currentURL(), '/');
+          console.log(someFancyThing, someFancyThing2, aThing)
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app/", "big-library"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
+    "import { visit, currentURL } from '@ember/test-helpers';
+    import { module, test } from 'qunit';
+    let someFancyThing;
+    let otherFancyThing;
+    let otherFancyThing2;
+    let aThing;
+    module('Acceptance | test', function (hooks) {
+      hooks.beforeAll(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+          otherFancyThing = module.otherFancyThing;
+        })(), (async () => {
+          let module = await import('fancy-app/some/other/path');
+          otherFancyThing2 = module.otherFancyThing2;
+        })(), (async () => {
+          let module = await import('big-library/some/other/path');
+          aThing = module.default;
+        })()]);
+      });
+      test('should work', async function (assert) {
+        await visit('/');
+        assert.strictEqual(currentURL(), '/');
+        console.log(someFancyThing, someFancyThing2, aThing);
+      });
+    });"
+  `);
 });
