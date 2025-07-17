@@ -36,6 +36,7 @@
     "@babel/traverse": "^7.23.0",
     "@babel/types": "^7.23.0",
     "prettier": "^3.5.3",
+    "prettier-plugin-ember-template-tag": "^2.0.6",
     "release-plan": "^0.16.0",
     "vitest": "^3.2.4"
   },
