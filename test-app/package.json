@@ -26,7 +26,8 @@
     "test": "vite build --mode development && testem ci"
   },
   "imports": {
-    "#app/*": "./app/*"
+    "#app/*": "./app/*",
+    "#config": "./app/config/environment.js"
   },
   "exports": {
     "./tests/*": "./tests/*",
