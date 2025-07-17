@@ -26,16 +26,14 @@ jobs:
     name: "Test: ${{ matrix.environment.name }}"
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    
+
     strategy:
       fail-fast: false
       matrix:
         environment:
-        - { name: "Unit", command: "pnpm test:unit"}
-        - { name: "Acceptance", command: "cd test-app && pnpm test" }
-
+          - { name: "Unit", command: "pnpm test:unit" }
+          - { name: "Acceptance", command: "cd test-app && pnpm test" }
 
     steps:
       - uses: wyvox/action@v1
       - run: ${{ matrix.environment.command }}
-

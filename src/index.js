@@ -10,7 +10,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
   if (options.startsWith) {
     assert(
       Array.isArray(options.startsWith),
-      `Expected options.startsWith to be an array of strings, but got: ${options.startsWith}`
+      `Expected options.startsWith to be an array of strings, but got: ${options.startsWith}`,
     );
   }
 
@@ -88,12 +88,12 @@ export default function qunitLazyImportsPlugin(babel, options) {
             ${specifier.names
               .map(
                 (namePair) =>
-                  `${namePair.localName} = module.${namePair.importName};`
+                  `${namePair.localName} = module.${namePair.importName};`,
               )
               .join("\n")}
-          })()`
-    }).join(',\n');
-          
+          })()`;
+          })
+          .join(",\n");
 
         let newCode = template.ast(`
           hooks.beforeAll(async () => {
