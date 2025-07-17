@@ -164,7 +164,8 @@ module('Acceptance | test', function (hooks) {
 
   it("does not conflict or mess with existing beforeAll", () => {
     expect(
-      transform(`
+      transform(
+        `
       import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
       import someFancyThing from 'fancy-app/some/path';
@@ -180,7 +181,9 @@ module('Acceptance | test', function (hooks) {
           console.log(someFancyThing)
         });
       });
-`, { startsWith: ['fancy-app/'] })
+`,
+        { startsWith: ["fancy-app/"] },
+      ),
     ).toMatchInlineSnapshot(`
       "import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
@@ -204,4 +207,3 @@ module('Acceptance | test', function (hooks) {
     `);
   });
 });
-
