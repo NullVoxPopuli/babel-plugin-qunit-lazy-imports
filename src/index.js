@@ -64,10 +64,15 @@ export default function qunitLazyImportsPlugin(babel, options) {
     name: "qunit-lazy-imports",
     visitor: {
       ImportDeclaration(path, state) {
+        if (path.node.source.value === 'qunit') {
+          state.isUsingQunit = true;
+        }
+
         if (shouldMoveImport(path)) {
           let moveThisImport = {
             source: path.node.source.value,
             names: [],
+            path,
           };
           for (let specifier of path.node.specifiers) {
             moveThisImport.names.push({
@@ -77,21 +82,39 @@ export default function qunitLazyImportsPlugin(babel, options) {
           }
           state.importsToMove ||= [];
           state.importsToMove.push(moveThisImport);
-
-          for (let specifier of moveThisImport.names) {
-            let declaration = template.ast(`let ${specifier.localName};`);
-            path.insertBefore(declaration);
-          }
-
-          path.remove();
         }
       },
+      /**
+       * if we have made changes
+       */
+      'Program': {
+        exit(path, state) {
+          if (!state.isUsingQunit) return;
+          if (!state.importsToMove) return;
+          if (state.importsToMove.length === 0) return; 
+
+          for (let moveThisImport of state.importsToMove) {
+            for (let specifier of moveThisImport.names) {
+              let declaration = template.ast(`let ${specifier.localName};`);
+              moveThisImport.path.insertBefore(declaration);
+            }
+
+            moveThisImport.path.remove();
+          }
+
+        },
+      },
+      /**
+       * This main content here likely won't ever run unless in tests
+       */
       CallExpression(path, state) {
+        if (!state.isUsingQunit) return;
         if (!state.importsToMove) return;
         if (state.importsToMove.length === 0) return;
         let module = path.scope.bindings.module;
         if (!module?.path?.parent) return;
         if (module.path.parent?.type !== "ImportDeclaration") return;
+        if (module.path.parent.source.value !== 'qunit') return;
 
         /**
          * Last argument of module() is the function callback.
