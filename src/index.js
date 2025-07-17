@@ -55,7 +55,6 @@ export default function qunitLazyImportsPlugin(babel, options) {
     return false;
   }
 
-  let importsToMove = [];
 
   if (!options.startsWith && !options.matches) {
     return { name: "qunit-lazy-imports:noop", visitor: {} };
@@ -76,7 +75,8 @@ export default function qunitLazyImportsPlugin(babel, options) {
               importName: specifier.imported?.name ?? "default",
             });
           }
-          importsToMove.push(moveThisImport);
+          state.importsToMove ||= [];
+          state.importsToMove.push(moveThisImport);
 
           for (let specifier of moveThisImport.names) {
             let declaration = template.ast(`let ${specifier.localName};`);
@@ -87,7 +87,8 @@ export default function qunitLazyImportsPlugin(babel, options) {
         }
       },
       CallExpression(path, state) {
-        if (importsToMove.length === 0) return;
+        if (!state.importsToMove) return;
+        if (state.importsToMove.length === 0) return;
         let module = path.scope.bindings.module;
         if (!module?.path?.parent) return;
         if (module.path.parent?.type !== "ImportDeclaration") return;
@@ -101,7 +102,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
          */
         let body = path.node.arguments[1].body.body;
 
-        let importsForBeforeAll = importsToMove
+        let importsForBeforeAll = state.importsToMove
           .map((specifier) => {
             return `
           (async () => {
