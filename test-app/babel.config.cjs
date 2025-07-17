@@ -41,9 +41,9 @@ module.exports = {
         useESModules: true,
         regenerator: false,
       },
-    ].filter(Boolean),
+    ],
     ...babelCompatSupport(),
-  ],
+  ].filter(Boolean),
 
   generatorOpts: {
     compact: false,

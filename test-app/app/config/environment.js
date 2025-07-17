@@ -1,7 +1,7 @@
 import { getGlobalConfig } from '@embroider/macros/src/addon/runtime';
 
 const ENV = {
-  modulePrefix: 'limber',
+  modulePrefix: 'test-app',
   environment: import.meta.env.DEV ? 'development' : 'production',
   rootURL: '/',
   locationType: 'history',
