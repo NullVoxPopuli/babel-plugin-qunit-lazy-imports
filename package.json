@@ -34,6 +34,10 @@
     "prettier": "^3.5.3",
     "vitest": "^3.2.4"
   },
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": "^20.11 || >= 22"
+  },
   "peerDependencies": {
     "@babel/core": "^7.0.0"
   },
