@@ -25,12 +25,13 @@ module.exports = {
         },
       },
     ],
-    [
-      'module:babel-plugin-qunit-lazy-imports',
-      {
-        startsWith: ['test-app/'],
-      },
-    ],
+    // Enabling and disabling this should result in no difference in tests results
+    // [
+    //   'module:babel-plugin-qunit-lazy-imports',
+    //   {
+    //     startsWith: ['test-app/'],
+    //   },
+    // ],
     [
       '@babel/plugin-transform-runtime',
       {
