@@ -1,0 +1,39 @@
+name: CI
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+##############################################################
+
+permissions:
+  contents: read
+
+##############################################################
+
+jobs:
+  lints:
+    name: "Lints"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: wyvox/action@v1
+      - run: pnpm lint
+
+  tests:
+    name: "Test: ${{ matrix.environment.name }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - { name: "Unit", command: "pnpm test:unit" }
+          - { name: "Acceptance", command: "cd test-app && pnpm test" }
+
+    steps:
+      - uses: wyvox/action@v1
+      - run: ${{ matrix.environment.command }}
