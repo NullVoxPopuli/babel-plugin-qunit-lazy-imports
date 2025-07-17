@@ -8,15 +8,17 @@ In your babel config:
 
 ```js
 module.exports = {
-    plugins: [
-        ['module:babel-plugin-qunit-lazy-imports' , {
-            // Both options are optional, but one must be present
-            startsWith: ['module-to-be-async/'],
-            matches: [/some-regex/]
-        }]
-    ]
-}
-
+  plugins: [
+    [
+      "module:babel-plugin-qunit-lazy-imports",
+      {
+        // Both options are optional, but one must be present
+        startsWith: ["module-to-be-async/"],
+        matches: [/some-regex/],
+      },
+    ],
+  ],
+};
 ```
 
 ## Install
