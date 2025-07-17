@@ -26,6 +26,12 @@ module.exports = {
       },
     ],
     [
+      'module:babel-plugin-qunit-lazy-imports',
+      {
+        startsWith: ['test-app/'],
+      },
+    ],
+    [
       '@babel/plugin-transform-runtime',
       {
         absoluteRuntime: __dirname,
