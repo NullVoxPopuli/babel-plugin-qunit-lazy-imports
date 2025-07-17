@@ -25,6 +25,10 @@
     "start": "vite",
     "test": "vite build --mode development && testem ci"
   },
+  "imports": {
+    "#app/*": "./app/*",
+    "#config": "./app/config/environment.js"
+  },
   "exports": {
     "./tests/*": "./tests/*",
     "./*": "./app/*"
@@ -47,15 +51,13 @@
     "@eslint/js": "^9.27.0",
     "@glimmer/component": "^2.0.0",
     "@rollup/plugin-babel": "^6.0.4",
-    "@warp-drive/ember": "~5.5.0",
     "babel-plugin-ember-template-compilation": "^2.4.1",
+    "babel-plugin-qunit-lazy-imports": "workspace:*",
     "concurrently": "^9.1.2",
     "decorator-transforms": "^2.3.0",
     "ember-auto-import": "^2.10.0",
     "ember-cli": "~6.5.0-beta.0",
     "ember-cli-babel": "^8.2.0",
-    "ember-cli-deprecation-workflow": "^3.3.0",
-    "ember-data": "~5.5.0",
     "ember-load-initializers": "^3.0.1",
     "ember-modifier": "^4.2.2",
     "ember-page-title": "^9.0.2",

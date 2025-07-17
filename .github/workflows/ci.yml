@@ -33,6 +33,7 @@ jobs:
         environment:
           - { name: "Unit", command: "pnpm test:unit" }
           - { name: "Acceptance", command: "cd test-app && pnpm test" }
+          - { name: "Sanity", command: "cd test-app && DISABLE_PLUGIN=true pnpm test" }
 
     steps:
       - uses: wyvox/action@v1

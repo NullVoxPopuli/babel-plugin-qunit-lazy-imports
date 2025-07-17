@@ -60,23 +60,23 @@ it("moves imports from fancy-app when startsWith has been provided", () => {
       },
     ),
   ).toMatchInlineSnapshot(`
-  "import { visit, currentURL } from '@ember/test-helpers';
-  import { module, test } from 'qunit';
-  let someFancyThing;
-  module('Acceptance | test', function (hooks) {
-    hooks.beforeAll(async () => {
-      await Promise.all([(async () => {
-        let module = await import('fancy-app/some/path');
-        someFancyThing = module.default;
-      })()]);
-    });
-    test('should work', async function (assert) {
-      await visit('/');
-      assert.strictEqual(currentURL(), '/');
-      console.log(someFancyThing);
-    });
-  });"
-`);
+    "import { visit, currentURL } from '@ember/test-helpers';
+    import { module, test } from 'qunit';
+    let someFancyThing;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      test('should work', async function (assert) {
+        await visit('/');
+        assert.strictEqual(currentURL(), '/');
+        console.log(someFancyThing);
+      });
+    });"
+  `);
 });
 
 it("moves named imports correctly", () => {
@@ -100,25 +100,25 @@ it("moves named imports correctly", () => {
       },
     ),
   ).toMatchInlineSnapshot(`
-  "import { visit, currentURL } from '@ember/test-helpers';
-  import { module, test } from 'qunit';
-  let someFancyThing;
-  let otherFancyThing;
-  module('Acceptance | test', function (hooks) {
-    hooks.beforeAll(async () => {
-      await Promise.all([(async () => {
-        let module = await import('fancy-app/some/path');
-        someFancyThing = module.default;
-        otherFancyThing = module.otherFancyThing;
-      })()]);
-    });
-    test('should work', async function (assert) {
-      await visit('/');
-      assert.strictEqual(currentURL(), '/');
-      console.log(someFancyThing);
-    });
-  });"
-`);
+    "import { visit, currentURL } from '@ember/test-helpers';
+    import { module, test } from 'qunit';
+    let someFancyThing;
+    let otherFancyThing;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+          otherFancyThing = module.otherFancyThing;
+        })()]);
+      });
+      test('should work', async function (assert) {
+        await visit('/');
+        assert.strictEqual(currentURL(), '/');
+        console.log(someFancyThing);
+      });
+    });"
+  `);
 });
 
 it("moves imports from fancy-app when startsWith has been provided and uses the local name of hooks", () => {
@@ -142,23 +142,23 @@ it("moves imports from fancy-app when startsWith has been provided and uses the 
       },
     ),
   ).toMatchInlineSnapshot(`
-      "import { visit, currentURL } from '@ember/test-helpers';
-      import { module, test } from 'qunit';
-      let someFancyThing;
-      module('Acceptance | test', function (hooks) {
-        hooks.beforeAll(async () => {
-          await Promise.all([(async () => {
-            let module = await import('fancy-app/some/path');
-            someFancyThing = module.default;
-          })()]);
-        });
-        test('should work', async function (assert) {
-          await visit('/');
-          assert.strictEqual(currentURL(), '/');
-          console.log(someFancyThing);
-        });
-      });"
-    `);
+    "import { visit, currentURL } from '@ember/test-helpers';
+    import { module, test } from 'qunit';
+    let someFancyThing;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      test('should work', async function (assert) {
+        await visit('/');
+        assert.strictEqual(currentURL(), '/');
+        console.log(someFancyThing);
+      });
+    });"
+  `);
 });
 
 it("does not conflict or mess with existing beforeAll", () => {
@@ -184,26 +184,26 @@ it("does not conflict or mess with existing beforeAll", () => {
       { startsWith: ["fancy-app/"] },
     ),
   ).toMatchInlineSnapshot(`
-      "import { visit, currentURL } from '@ember/test-helpers';
-      import { module, test } from 'qunit';
-      let someFancyThing;
-      module('Acceptance | test', function (hooks) {
-        hooks.beforeAll(async () => {
-          await Promise.all([(async () => {
-            let module = await import('fancy-app/some/path');
-            someFancyThing = module.default;
-          })()]);
-        });
-        beforeAll(async () => {
-          console.log('I exist');
-        });
-        test('should work', async function (assert) {
-          await visit('/');
-          assert.strictEqual(currentURL(), '/');
-          console.log(someFancyThing);
-        });
-      });"
-    `);
+    "import { visit, currentURL } from '@ember/test-helpers';
+    import { module, test } from 'qunit';
+    let someFancyThing;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      beforeAll(async () => {
+        console.log('I exist');
+      });
+      test('should work', async function (assert) {
+        await visit('/');
+        assert.strictEqual(currentURL(), '/');
+        console.log(someFancyThing);
+      });
+    });"
+  `);
 });
 
 it("moves multiple imports correctly", () => {
@@ -229,33 +229,33 @@ it("moves multiple imports correctly", () => {
       },
     ),
   ).toMatchInlineSnapshot(`
-      "import { visit, currentURL } from '@ember/test-helpers';
-      import { module, test } from 'qunit';
-      let someFancyThing;
-      let otherFancyThing;
-      let otherFancyThing2;
-      let aThing;
-      module('Acceptance | test', function (hooks) {
-        hooks.beforeAll(async () => {
-          await Promise.all([(async () => {
-            let module = await import('fancy-app/some/path');
-            someFancyThing = module.default;
-            otherFancyThing = module.otherFancyThing;
-          })(), (async () => {
-            let module = await import('fancy-app/some/other/path');
-            otherFancyThing2 = module.otherFancyThing2;
-          })(), (async () => {
-            let module = await import('fancy-app/some/other/path');
-            aThing = module.default;
-          })()]);
-        });
-        test('should work', async function (assert) {
-          await visit('/');
-          assert.strictEqual(currentURL(), '/');
-          console.log(someFancyThing, someFancyThing2, aThing);
-        });
-      });"
-    `);
+    "import { visit, currentURL } from '@ember/test-helpers';
+    import { module, test } from 'qunit';
+    let someFancyThing;
+    let otherFancyThing;
+    let otherFancyThing2;
+    let aThing;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+          otherFancyThing = module.otherFancyThing;
+        })(), (async () => {
+          let module = await import('fancy-app/some/other/path');
+          otherFancyThing2 = module.otherFancyThing2;
+        })(), (async () => {
+          let module = await import('fancy-app/some/other/path');
+          aThing = module.default;
+        })()]);
+      });
+      test('should work', async function (assert) {
+        await visit('/');
+        assert.strictEqual(currentURL(), '/');
+        console.log(someFancyThing, someFancyThing2, aThing);
+      });
+    });"
+  `);
 });
 
 it("moves aliased imports", () => {
@@ -279,25 +279,25 @@ it("moves aliased imports", () => {
       },
     ),
   ).toMatchInlineSnapshot(`
-      "import { visit, currentURL } from '@ember/test-helpers';
-      import { module, test } from 'qunit';
-      let foo;
-      let bar;
-      module('Acceptance | test', function (hooks) {
-        hooks.beforeAll(async () => {
-          await Promise.all([(async () => {
-            let module = await import('fancy-app/some/path');
-            foo = module.default;
-            bar = module.someFancyThing;
-          })()]);
-        });
-        test('should work', async function (assert) {
-          await visit('/');
-          assert.strictEqual(currentURL(), '/');
-          console.log(someFancyThing);
-        });
-      });"
-    `);
+    "import { visit, currentURL } from '@ember/test-helpers';
+    import { module, test } from 'qunit';
+    let foo;
+    let bar;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          foo = module.default;
+          bar = module.someFancyThing;
+        })()]);
+      });
+      test('should work', async function (assert) {
+        await visit('/');
+        assert.strictEqual(currentURL(), '/');
+        console.log(someFancyThing);
+      });
+    });"
+  `);
 });
 
 it("moves multiple different imports correctly", () => {
@@ -330,7 +330,7 @@ it("moves multiple different imports correctly", () => {
     let otherFancyThing2;
     let aThing;
     module('Acceptance | test', function (hooks) {
-      hooks.beforeAll(async () => {
+      hooks.before(async () => {
         await Promise.all([(async () => {
           let module = await import('fancy-app/some/path');
           someFancyThing = module.default;

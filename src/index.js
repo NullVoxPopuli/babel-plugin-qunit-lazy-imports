@@ -1,12 +1,33 @@
 import assert from "node:assert";
-import template from "@babel/template";
+import * as _template from "@babel/template";
+
+let template;
+
+/**
+ * Babel is published weird
+ *
+ * They try to publish cjs with some esm compat, but they are ultimately cjs.
+ * We try to find their "exports.default" -- whichever has the 'ast' function on it.
+ */
+(() => {
+  function setIfProper(maybeTemplate) {
+    if (template) return;
+    if (!maybeTemplate) return;
+
+    if ("ast" in maybeTemplate) {
+      template = maybeTemplate;
+    }
+  }
+
+  setIfProper(_template);
+  setIfProper(_template.default);
+  setIfProper(_template.default?.default);
+})();
 
 /**
  * @param options - an object with optional startsWith: [string] or matches: [RegEx]
  */
 export default function qunitLazyImportsPlugin(babel, options) {
-  const { types: t } = babel;
-
   if (options.startsWith) {
     assert(
       Array.isArray(options.startsWith),
@@ -34,8 +55,6 @@ export default function qunitLazyImportsPlugin(babel, options) {
     return false;
   }
 
-  let importsToMove = [];
-
   if (!options.startsWith && !options.matches) {
     return { name: "qunit-lazy-imports:noop", visitor: {} };
   }
@@ -44,10 +63,15 @@ export default function qunitLazyImportsPlugin(babel, options) {
     name: "qunit-lazy-imports",
     visitor: {
       ImportDeclaration(path, state) {
+        if (path.node.source.value === "qunit") {
+          state.isUsingQunit = true;
+        }
+
         if (shouldMoveImport(path)) {
           let moveThisImport = {
             source: path.node.source.value,
             names: [],
+            path,
           };
           for (let specifier of path.node.specifiers) {
             moveThisImport.names.push({
@@ -55,21 +79,40 @@ export default function qunitLazyImportsPlugin(babel, options) {
               importName: specifier.imported?.name ?? "default",
             });
           }
-          importsToMove.push(moveThisImport);
-
-          for (let specifier of moveThisImport.names) {
-            let declaration = template.ast(`let ${specifier.localName};`);
-            path.insertBefore(declaration);
-          }
-
-          path.remove();
+          state.importsToMove ||= [];
+          state.importsToMove.push(moveThisImport);
         }
       },
+      /**
+       * if we have made changes
+       */
+      Program: {
+        exit(path, state) {
+          if (!state.isUsingQunit) return;
+          if (!state.importsToMove) return;
+          if (state.importsToMove.length === 0) return;
+
+          for (let moveThisImport of state.importsToMove) {
+            for (let specifier of moveThisImport.names) {
+              let declaration = template.ast(`let ${specifier.localName};`);
+              moveThisImport.path.insertBefore(declaration);
+            }
+
+            moveThisImport.path.remove();
+          }
+        },
+      },
+      /**
+       * This main content here likely won't ever run unless in tests
+       */
       CallExpression(path, state) {
-        if (importsToMove.length === 0) return;
+        if (!state.isUsingQunit) return;
+        if (!state.importsToMove) return;
+        if (state.importsToMove.length === 0) return;
         let module = path.scope.bindings.module;
         if (!module?.path?.parent) return;
         if (module.path.parent?.type !== "ImportDeclaration") return;
+        if (module.path.parent.source.value !== "qunit") return;
 
         /**
          * Last argument of module() is the function callback.
@@ -80,7 +123,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
          */
         let body = path.node.arguments[1].body.body;
 
-        let importsForBeforeAll = importsToMove
+        let importsForBeforeAll = state.importsToMove
           .map((specifier) => {
             return `
           (async () => {
@@ -96,7 +139,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
           .join(",\n");
 
         let newCode = template.ast(`
-          hooks.beforeAll(async () => {
+          hooks.before(async () => {
             await Promise.all([
                 ${importsForBeforeAll}
             ]);

@@ -25,6 +25,15 @@ module.exports = {
         },
       },
     ],
+    // Enabling and disabling this should result in no difference in tests results
+    process.env.DISABLE_PLUGIN
+      ? null
+      : [
+          'module:babel-plugin-qunit-lazy-imports',
+          {
+            startsWith: ['test-app/'],
+          },
+        ],
     [
       '@babel/plugin-transform-runtime',
       {
@@ -34,7 +43,7 @@ module.exports = {
       },
     ],
     ...babelCompatSupport(),
-  ],
+  ].filter(Boolean),
 
   generatorOpts: {
     compact: false,
