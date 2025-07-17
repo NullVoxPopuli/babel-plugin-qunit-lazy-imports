@@ -2,19 +2,6 @@
   "name": "babel-plugin-qunit-lazy-imports",
   "version": "1.0.0",
   "description": "Babel plugin that transforms imports in QUnit test files to lazy imports in beforeEach hooks",
-  "main": "src/index.js",
-  "type": "module",
-  "engines": {
-    "node": ">=22.0.0"
-  },
-  "scripts": {
-    "lint": "prettier . --check",
-    "format": "prettier . --write",
-    "test": "pnpm run test:unit && pnpm run test:integration",
-    "test:unit": "vitest",
-    "test:watch": "node --test --watch tests/*.test.js",
-    "test:integration": "cd test-app && pnpm test"
-  },
   "keywords": [
     "babel",
     "plugin",
@@ -23,8 +10,25 @@
     "imports",
     "testing"
   ],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:NullVoxPopuli/babel-plugin-qunit-lazy-imports.git"
+  },
   "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "format": "prettier . --write",
+    "lint": "prettier . --check",
+    "test": "pnpm run test:unit && pnpm run test:integration",
+    "test:integration": "cd test-app && pnpm test",
+    "test:unit": "vitest",
+    "test:watch": "node --test --watch tests/*.test.js"
+  },
+  "dependencies": {
+    "@babel/template": "^7.27.2"
+  },
   "devDependencies": {
     "@babel/core": "^7.23.0",
     "@babel/generator": "^7.23.0",
@@ -32,16 +36,14 @@
     "@babel/traverse": "^7.23.0",
     "@babel/types": "^7.23.0",
     "prettier": "^3.5.3",
+    "release-plan": "^0.16.0",
     "vitest": "^3.2.4"
-  },
-  "packageManager": "pnpm@10.13.1",
-  "engines": {
-    "node": "^20.11 || >= 22"
   },
   "peerDependencies": {
     "@babel/core": "^7.0.0"
   },
-  "dependencies": {
-    "@babel/template": "^7.27.2"
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": "^20.11 || >= 22"
   }
 }
