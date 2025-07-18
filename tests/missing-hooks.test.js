@@ -1,6 +1,6 @@
 import { it, expect } from "vitest";
 
-import { transform } from './helpers.js';
+import { transform } from "./helpers.js";
 
 it("inserts the hooks.before", () => {
   expect(
@@ -42,7 +42,6 @@ it("inserts the hooks.before", () => {
   `);
 });
 
-
 it("inserts the hooks.before when arrow", () => {
   expect(
     transform(
@@ -82,7 +81,6 @@ it("inserts the hooks.before when arrow", () => {
     });"
   `);
 });
-
 
 it("avoids 'redeclaration of const'", () => {
   expect(
@@ -125,4 +123,3 @@ it("avoids 'redeclaration of const'", () => {
     });"
   `);
 });
-

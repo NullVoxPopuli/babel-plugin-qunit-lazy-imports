@@ -10,4 +10,3 @@ export function transform(code, config) {
   });
   return result.code;
 }
-

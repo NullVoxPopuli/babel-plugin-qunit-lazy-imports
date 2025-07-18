@@ -1,9 +1,8 @@
 import { it, expect } from "vitest";
 
-import { transform } from './helpers.js';
+import { transform } from "./helpers.js";
 
-
-it('works with arrows', () => {
+it("works with arrows", () => {
   expect(
     transform(
       `

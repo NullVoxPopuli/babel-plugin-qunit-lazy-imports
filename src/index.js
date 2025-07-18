@@ -133,11 +133,11 @@ export default function qunitLazyImportsPlugin(babel, options) {
           (async () => {
             let module = await import('${specifier.source}');
             ${specifier.names
-                .map(
-                  (namePair) =>
-                    `${namePair.localName} = module.${namePair.importName};`,
-                )
-                .join("\n")}
+              .map(
+                (namePair) =>
+                  `${namePair.localName} = module.${namePair.importName};`,
+              )
+              .join("\n")}
           })()`;
           })
           .join(",\n");
