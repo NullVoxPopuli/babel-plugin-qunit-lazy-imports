@@ -1,17 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { it, expect } from "vitest";
 
-import { transformSync } from "@babel/core";
-import qunitLazyImportsPlugin from "../src/index.js";
-
-function transform(code, config) {
-  const result = transformSync(code, {
-    plugins: [[qunitLazyImportsPlugin, config]],
-    parserOpts: {
-      sourceType: "module",
-    },
-  });
-  return result.code;
-}
+import { transform } from './helpers.js';
 
 it("doesn't change anything if you have not provided a startsWith or matches config", () => {
   expect(
@@ -350,70 +339,5 @@ it("moves multiple different imports correctly", () => {
       });
     });"
   `);
-});
-
-
-describe('multiple modules', () => {
-  it("moves imports from fancy-app when startsWith has been provided", () => {
-    expect(
-      transform(
-        `
-      import { visit, currentURL } from '@ember/test-helpers';
-      import { module, test } from 'qunit';
-      import someFancyThing from 'fancy-app/some/path';
-
-      module('Acceptance | test', function (hooks) {
-        test('should work', async function (assert) {
-          await visit('/');
-          assert.strictEqual(currentURL(), '/');
-          console.log(someFancyThing)
-        });
-      });
-
-      module('Two test', function (hooks) {
-        test('should work', async function (assert) {
-          await visit('/');
-          assert.strictEqual(currentURL(), '/');
-          console.log(someFancyThing)
-        });
-      });
-`,
-        {
-          startsWith: ["fancy-app/"],
-        },
-      ),
-    ).toMatchInlineSnapshot(`
-      "import { visit, currentURL } from '@ember/test-helpers';
-      import { module, test } from 'qunit';
-      let someFancyThing;
-      module('Acceptance | test', function (hooks) {
-        hooks.before(async () => {
-          await Promise.all([(async () => {
-            let module = await import('fancy-app/some/path');
-            someFancyThing = module.default;
-          })()]);
-        });
-        test('should work', async function (assert) {
-          await visit('/');
-          assert.strictEqual(currentURL(), '/');
-          console.log(someFancyThing);
-        });
-      });
-      module('Two test', function (hooks) {
-        hooks.before(async () => {
-          await Promise.all([(async () => {
-            let module = await import('fancy-app/some/path');
-            someFancyThing = module.default;
-          })()]);
-        });
-        test('should work', async function (assert) {
-          await visit('/');
-          assert.strictEqual(currentURL(), '/');
-          console.log(someFancyThing);
-        });
-      });"
-    `);
-  });
-
 });
 
