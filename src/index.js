@@ -90,6 +90,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
         exit(path, state) {
           if (!state.isUsingQunit) return;
           if (!state.importsToMove) return;
+          if (!state.didMove) return;
           if (state.importsToMove.length === 0) return;
 
           for (let moveThisImport of state.importsToMove) {
@@ -113,6 +114,9 @@ export default function qunitLazyImportsPlugin(babel, options) {
         if (!module?.path?.parent) return;
         if (module.path.parent?.type !== "ImportDeclaration") return;
         if (module.path.parent.source.value !== "qunit") return;
+
+        // This is either true, or the rest of this visitor will error accidentally
+        state.didMove = true;
 
         /**
          * Last argument of module() is the function callback.
