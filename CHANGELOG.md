@@ -2,6 +2,17 @@
 
 ## Release (2025-07-21)
 
+* babel-plugin-qunit-lazy-imports 1.2.0 (minor)
+
+#### :rocket: Enhancement
+* `babel-plugin-qunit-lazy-imports`
+  * [#12](https://github.com/NullVoxPopuli/babel-plugin-qunit-lazy-imports/pull/12) Support exclude patterns ([@NullVoxPopuli](https://github.com/NullVoxPopuli))
+
+#### Committers: 1
+- [@NullVoxPopuli](https://github.com/NullVoxPopuli)
+
+## Release (2025-07-21)
+
 * babel-plugin-qunit-lazy-imports 1.1.3 (patch)
 
 #### :bug: Bug Fix
