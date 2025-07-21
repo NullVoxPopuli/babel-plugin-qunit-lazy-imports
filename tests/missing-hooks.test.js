@@ -26,8 +26,8 @@ it("inserts the hooks.before", () => {
     "import { visit, currentURL } from '@ember/test-helpers';
     import { module, test } from 'qunit';
     let someFancyThing;
-    module('Acceptance | test', function (hooks) {
-      hooks.before(async () => {
+    module('Acceptance | test', function (lazyAddedHooks1) {
+      lazyAddedHooks1.before(async () => {
         await Promise.all([(async () => {
           let module = await import('fancy-app/some/path');
           someFancyThing = module.default;
@@ -66,8 +66,8 @@ it("inserts the hooks.before when arrow", () => {
     "import { visit, currentURL } from '@ember/test-helpers';
     import { module, test } from 'qunit';
     let someFancyThing;
-    module('Acceptance | test', (hooks) => {
-      hooks.before(async () => {
+    module('Acceptance | test', lazyAddedHooks1 => {
+      lazyAddedHooks1.before(async () => {
         await Promise.all([(async () => {
           let module = await import('fancy-app/some/path');
           someFancyThing = module.default;
@@ -107,8 +107,8 @@ it("avoids 'redeclaration of const'", () => {
     "import { visit, currentURL } from '@ember/test-helpers';
     import { module, test } from 'qunit';
     let someFancyThing;
-    module('Acceptance | test', function (hooks2) {
-      hooks2.before(async () => {
+    module('Acceptance | test', function (lazyAddedHooks1) {
+      lazyAddedHooks1.before(async () => {
         await Promise.all([(async () => {
           let module = await import('fancy-app/some/path');
           someFancyThing = module.default;

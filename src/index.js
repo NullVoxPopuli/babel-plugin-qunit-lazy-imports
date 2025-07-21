@@ -3,6 +3,8 @@ import * as _template from "@babel/template";
 
 let template;
 
+let id = 0;
+
 /**
  * Babel is published weird
  *
@@ -118,6 +120,21 @@ export default function qunitLazyImportsPlugin(babel, options) {
         // This is either true, or the rest of this visitor will error accidentally
         state.didMove = true;
 
+        let moduleFunction = path.node.arguments[1];
+
+        if (!moduleFunction) {
+          throw new Error(`This is an invalid test. A module() call must have a second argument which is a function.`);
+        }
+
+        let hooksName = moduleFunction.params[0]?.name;
+
+
+        if (!hooksName) {
+          id++;
+          hooksName = `lazyAddedHooks${id}`;
+          moduleFunction.params.push(babel.types.identifier(hooksName));
+        }
+
         /**
          * Last argument of module() is the function callback.
          *   it could be an arrow function or a regular function.
@@ -133,17 +150,17 @@ export default function qunitLazyImportsPlugin(babel, options) {
           (async () => {
             let module = await import('${specifier.source}');
             ${specifier.names
-              .map(
-                (namePair) =>
-                  `${namePair.localName} = module.${namePair.importName};`,
-              )
-              .join("\n")}
+                .map(
+                  (namePair) =>
+                    `${namePair.localName} = module.${namePair.importName};`,
+                )
+                .join("\n")}
           })()`;
           })
           .join(",\n");
 
         let newCode = template.ast(`
-          hooks.before(async () => {
+          ${hooksName}.before(async () => {
             await Promise.all([
                 ${importsForBeforeAll}
             ]);
