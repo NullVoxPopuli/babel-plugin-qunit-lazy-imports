@@ -115,10 +115,29 @@ export default function qunitLazyImportsPlugin(babel, options) {
         if (!state.isUsingQunit) return;
         if (!state.importsToMove) return;
         if (state.importsToMove.length === 0) return;
+
         let module = path.scope.bindings.module;
+
+        /**
+         * If the module is not defined, we aren't defining module() tests
+         */
         if (!module?.path?.parent) return;
+        /**
+         * If module in scope is not from an import, we don't care
+         */
         if (module.path.parent?.type !== "ImportDeclaration") return;
+        /**
+         * If the imported module is not "qunit", we don't care
+         */
         if (module.path.parent.source.value !== "qunit") return;
+        /**
+         * If the CallExpression doesn't match the imported specifier, we don't care about it
+         */
+        let isCorrectlyReferenced = module.referencePaths.some(
+          (refPath) => refPath.node === path.node.callee,
+        );
+
+        if (!isCorrectlyReferenced) return;
 
         // This is either true, or the rest of this visitor will error accidentally
         state.didMove = true;

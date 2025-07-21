@@ -340,3 +340,44 @@ it("moves multiple different imports correctly", () => {
     });"
   `);
 });
+
+it("doesn't get confused with other top-level CallExpressions", () => {
+  expect(
+    transform(
+      `import { module, test } from 'qunit';
+
+import { currentURL, visit } from '@ember/test-helpers';
+
+import { idForWorkspace } from 'my-app/utils/workspace';
+
+const THE_ID = idForWorkspace('foo');
+
+module('name a', function (hooks) {
+	setupApplicationTest(hooks);
+
+	hooks.beforeEach(async function () {
+		console.log(THE_ID);
+	});
+});
+`,
+      { startsWith: ["my-app"] },
+    ),
+  ).toMatchInlineSnapshot(`
+  "import { module, test } from 'qunit';
+  import { currentURL, visit } from '@ember/test-helpers';
+  let idForWorkspace;
+  const THE_ID = idForWorkspace('foo');
+  module('name a', function (hooks) {
+    hooks.before(async () => {
+      await Promise.all([(async () => {
+        let module = await import('my-app/utils/workspace');
+        idForWorkspace = module.idForWorkspace;
+      })()]);
+    });
+    setupApplicationTest(hooks);
+    hooks.beforeEach(async function () {
+      console.log(THE_ID);
+    });
+  });"
+`);
+});
