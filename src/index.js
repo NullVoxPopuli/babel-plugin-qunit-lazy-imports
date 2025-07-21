@@ -150,6 +150,16 @@ export default function qunitLazyImportsPlugin(babel, options) {
           );
         }
 
+        let isValid =
+          moduleFunction.type === "FunctionExpression" ||
+          moduleFunction.type === "ArrowFunctionExpression";
+
+        if (!isValid) {
+          throw new Error(
+            `Second argument passed to qunit's module() should be a function, but got: ${moduleFunction.type}`,
+          );
+        }
+
         let hooksName = moduleFunction.params[0]?.name;
 
         if (!hooksName) {
