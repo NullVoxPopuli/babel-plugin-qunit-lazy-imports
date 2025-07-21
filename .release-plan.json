@@ -2,8 +2,8 @@
   "solution": {
     "babel-plugin-qunit-lazy-imports": {
       "impact": "patch",
-      "oldVersion": "1.1.0",
-      "newVersion": "1.1.1",
+      "oldVersion": "1.1.1",
+      "newVersion": "1.1.2",
       "tagName": "latest",
       "constraints": [
         {
@@ -14,5 +14,5 @@
       "pkgJSONPath": "./package.json"
     }
   },
-  "description": "## Release (2025-07-21)\n\n* babel-plugin-qunit-lazy-imports 1.1.1 (patch)\n\n#### :bug: Bug Fix\n* `babel-plugin-qunit-lazy-imports`\n  * [#6](https://github.com/NullVoxPopuli/babel-plugin-qunit-lazy-imports/pull/6) More tests ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n\n#### Committers: 1\n- [@NullVoxPopuli](https://github.com/NullVoxPopuli)\n"
+  "description": "## Release (2025-07-21)\n\n* babel-plugin-qunit-lazy-imports 1.1.2 (patch)\n\n#### :bug: Bug Fix\n* `babel-plugin-qunit-lazy-imports`\n  * [#8](https://github.com/NullVoxPopuli/babel-plugin-qunit-lazy-imports/pull/8) Fix extraneous call expressions ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n\n#### Committers: 1\n- [@NullVoxPopuli](https://github.com/NullVoxPopuli)\n"
 }
