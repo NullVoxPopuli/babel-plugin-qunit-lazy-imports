@@ -133,8 +133,10 @@ export default function qunitLazyImportsPlugin(babel, options) {
         /**
          * If the CallExpression doesn't match the imported specifier, we don't care about it
          */
-        let isCorrectlyReferenced = module.referencePaths.some(refPath => refPath.node === path.node.callee);
-        
+        let isCorrectlyReferenced = module.referencePaths.some(
+          (refPath) => refPath.node === path.node.callee,
+        );
+
         if (!isCorrectlyReferenced) return;
 
         // This is either true, or the rest of this visitor will error accidentally

@@ -341,9 +341,10 @@ it("moves multiple different imports correctly", () => {
   `);
 });
 
-
 it("doesn't get confused with other top-level CallExpressions", () => {
-  expect(transform(`import { module, test } from 'qunit';
+  expect(
+    transform(
+      `import { module, test } from 'qunit';
 
 import { currentURL, visit } from '@ember/test-helpers';
 
@@ -358,7 +359,10 @@ module('name a', function (hooks) {
 		console.log(THE_ID);
 	});
 });
-`, { startsWith: ['my-app']})).toMatchInlineSnapshot(`
+`,
+      { startsWith: ["my-app"] },
+    ),
+  ).toMatchInlineSnapshot(`
   "import { module, test } from 'qunit';
   import { currentURL, visit } from '@ember/test-helpers';
   let idForWorkspace;
