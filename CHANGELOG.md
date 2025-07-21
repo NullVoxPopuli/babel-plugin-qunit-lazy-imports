@@ -2,6 +2,17 @@
 
 ## Release (2025-07-21)
 
+* babel-plugin-qunit-lazy-imports 1.1.3 (patch)
+
+#### :bug: Bug Fix
+* `babel-plugin-qunit-lazy-imports`
+  * [#10](https://github.com/NullVoxPopuli/babel-plugin-qunit-lazy-imports/pull/10) Fix handling of incorrectly configured qunit suite ([@NullVoxPopuli](https://github.com/NullVoxPopuli))
+
+#### Committers: 1
+- [@NullVoxPopuli](https://github.com/NullVoxPopuli)
+
+## Release (2025-07-21)
+
 * babel-plugin-qunit-lazy-imports 1.1.2 (patch)
 
 #### :bug: Bug Fix
