@@ -40,8 +40,25 @@ export default function qunitLazyImportsPlugin(babel, options) {
     );
   }
 
+  if (options.excludes?.startsWith) {
+    assert(
+      Array.isArray(options.startsWith),
+      `Expected options.excludes.startsWith to be an array of strings, but got: ${options.excludes?.startsWith}`,
+    );
+  }
+
   function shouldMoveImport(path) {
     let value = path.node.source.value;
+
+    if (options?.excludes?.startsWith) {
+      if (
+        options.excludes.startsWith.some((startsWith) =>
+          value.startsWith(startsWith),
+        )
+      ) {
+        return false;
+      }
+    }
 
     if (options.startsWith) {
       if (
