@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-qunit-lazy-imports",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Babel plugin that transforms imports in QUnit test files to lazy imports in beforeEach hooks",
   "keywords": [
     "babel",
