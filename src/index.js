@@ -3,7 +3,6 @@ import * as _template from "@babel/template";
 
 let template;
 
-let id = 0;
 
 /**
  * Babel is published weird
@@ -30,6 +29,11 @@ let id = 0;
  * @param options - an object with optional startsWith: [string] or matches: [RegEx]
  */
 export default function qunitLazyImportsPlugin(babel, options) {
+  /**
+   * Hack / perf opt to avoid naming collisions without needing to figure out what scope is used / available.
+   */
+  let id = 0;
+
   if (options.startsWith) {
     assert(
       Array.isArray(options.startsWith),
@@ -151,11 +155,11 @@ export default function qunitLazyImportsPlugin(babel, options) {
           (async () => {
             let module = await import('${specifier.source}');
             ${specifier.names
-              .map(
-                (namePair) =>
-                  `${namePair.localName} = module.${namePair.importName};`,
-              )
-              .join("\n")}
+                .map(
+                  (namePair) =>
+                    `${namePair.localName} = module.${namePair.importName};`,
+                )
+                .join("\n")}
           })()`;
           })
           .join(",\n");
