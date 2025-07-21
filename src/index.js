@@ -123,11 +123,12 @@ export default function qunitLazyImportsPlugin(babel, options) {
         let moduleFunction = path.node.arguments[1];
 
         if (!moduleFunction) {
-          throw new Error(`This is an invalid test. A module() call must have a second argument which is a function.`);
+          throw new Error(
+            `This is an invalid test. A module() call must have a second argument which is a function.`,
+          );
         }
 
         let hooksName = moduleFunction.params[0]?.name;
-
 
         if (!hooksName) {
           id++;
@@ -150,11 +151,11 @@ export default function qunitLazyImportsPlugin(babel, options) {
           (async () => {
             let module = await import('${specifier.source}');
             ${specifier.names
-                .map(
-                  (namePair) =>
-                    `${namePair.localName} = module.${namePair.importName};`,
-                )
-                .join("\n")}
+              .map(
+                (namePair) =>
+                  `${namePair.localName} = module.${namePair.importName};`,
+              )
+              .join("\n")}
           })()`;
           })
           .join(",\n");
