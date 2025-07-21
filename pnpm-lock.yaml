@@ -57,6 +57,9 @@ importers:
       '@babel/plugin-transform-runtime':
         specifier: ^7.27.1
         version: 7.28.0(@babel/core@7.28.0)
+      '@babel/plugin-transform-typescript':
+        specifier: ^7.28.0
+        version: 7.28.0(@babel/core@7.28.0)
       '@babel/runtime':
         specifier: ^7.27.1
         version: 7.27.6

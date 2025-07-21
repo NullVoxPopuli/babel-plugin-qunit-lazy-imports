@@ -28,6 +28,11 @@ let template;
  * @param options - an object with optional startsWith: [string] or matches: [RegEx]
  */
 export default function qunitLazyImportsPlugin(babel, options) {
+  /**
+   * Hack / perf opt to avoid naming collisions without needing to figure out what scope is used / available.
+   */
+  let id = 0;
+
   if (options.startsWith) {
     assert(
       Array.isArray(options.startsWith),
@@ -90,6 +95,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
         exit(path, state) {
           if (!state.isUsingQunit) return;
           if (!state.importsToMove) return;
+          if (!state.didMove) return;
           if (state.importsToMove.length === 0) return;
 
           for (let moveThisImport of state.importsToMove) {
@@ -113,6 +119,25 @@ export default function qunitLazyImportsPlugin(babel, options) {
         if (!module?.path?.parent) return;
         if (module.path.parent?.type !== "ImportDeclaration") return;
         if (module.path.parent.source.value !== "qunit") return;
+
+        // This is either true, or the rest of this visitor will error accidentally
+        state.didMove = true;
+
+        let moduleFunction = path.node.arguments[1];
+
+        if (!moduleFunction) {
+          throw new Error(
+            `This is an invalid test. A module() call must have a second argument which is a function.`,
+          );
+        }
+
+        let hooksName = moduleFunction.params[0]?.name;
+
+        if (!hooksName) {
+          id++;
+          hooksName = `lazyAddedHooks${id}`;
+          moduleFunction.params.push(babel.types.identifier(hooksName));
+        }
 
         /**
          * Last argument of module() is the function callback.
@@ -139,7 +164,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
           .join(",\n");
 
         let newCode = template.ast(`
-          hooks.before(async () => {
+          ${hooksName}.before(async () => {
             await Promise.all([
                 ${importsForBeforeAll}
             ]);

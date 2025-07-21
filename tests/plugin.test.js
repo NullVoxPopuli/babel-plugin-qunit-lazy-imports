@@ -1,17 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { it, expect } from "vitest";
 
-import { transformSync } from "@babel/core";
-import qunitLazyImportsPlugin from "../src/index.js";
-
-function transform(code, config) {
-  const result = transformSync(code, {
-    plugins: [[qunitLazyImportsPlugin, config]],
-    parserOpts: {
-      sourceType: "module",
-    },
-  });
-  return result.code;
-}
+import { transform } from "./helpers.js";
 
 it("doesn't change anything if you have not provided a startsWith or matches config", () => {
   expect(
