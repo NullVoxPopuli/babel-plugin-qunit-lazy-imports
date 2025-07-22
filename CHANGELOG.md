@@ -1,5 +1,16 @@
 # Changelog
 
+## Release (2025-07-22)
+
+* babel-plugin-qunit-lazy-imports 1.2.1 (patch)
+
+#### :house: Internal
+* `babel-plugin-qunit-lazy-imports`
+  * [#14](https://github.com/NullVoxPopuli/babel-plugin-qunit-lazy-imports/pull/14) Test that type imports aren't moved ([@NullVoxPopuli](https://github.com/NullVoxPopuli))
+
+#### Committers: 1
+- [@NullVoxPopuli](https://github.com/NullVoxPopuli)
+
 ## Release (2025-07-21)
 
 * babel-plugin-qunit-lazy-imports 1.2.0 (minor)
