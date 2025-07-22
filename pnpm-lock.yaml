@@ -21,6 +21,9 @@ importers:
       '@babel/parser':
         specifier: ^7.23.0
         version: 7.28.0
+      '@babel/plugin-transform-typescript':
+        specifier: ^7.28.0
+        version: 7.28.0(@babel/core@7.28.0)
       '@babel/traverse':
         specifier: ^7.23.0
         version: 7.28.0
@@ -30,6 +33,9 @@ importers:
       concurrently:
         specifier: ^9.2.0
         version: 9.2.0
+      decorator-transforms:
+        specifier: ^2.3.0
+        version: 2.3.0(@babel/core@7.28.0)
       prettier:
         specifier: ^3.5.3
         version: 3.6.2
