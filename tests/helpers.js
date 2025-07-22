@@ -14,23 +14,23 @@ export function transform(code, config) {
 export function transformTS(code, config) {
   const result = transformSync(code, {
     plugins: [
-          [
-      '@babel/plugin-transform-typescript',
-      {
-        allExtensions: true,
-        onlyRemoveTypeImports: true,
-        allowDeclareFields: true,
-      },
-    ],
-    [
-      'module:decorator-transforms',
-      {
-        runtime: {
-          import: require.resolve('decorator-transforms/runtime-esm'),
+      [
+        "@babel/plugin-transform-typescript",
+        {
+          allExtensions: true,
+          onlyRemoveTypeImports: true,
+          allowDeclareFields: true,
         },
-      },
-    ],
-      [qunitLazyImportsPlugin, config]
+      ],
+      [
+        "module:decorator-transforms",
+        {
+          runtime: {
+            import: require.resolve("decorator-transforms/runtime-esm"),
+          },
+        },
+      ],
+      [qunitLazyImportsPlugin, config],
     ],
     parserOpts: {
       sourceType: "module",

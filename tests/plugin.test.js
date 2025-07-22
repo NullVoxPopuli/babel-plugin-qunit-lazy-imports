@@ -382,9 +382,10 @@ module('name a', function (hooks) {
 `);
 });
 
-
-it('does not move type imports', () => {
-  expect(transformTS(`
+it("does not move type imports", () => {
+  expect(
+    transformTS(
+      `
       import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
       import someFancyThing from 'fancy-app/some/path';
@@ -397,9 +398,12 @@ it('does not move type imports', () => {
           console.log(someFancyThing as Foo)
         });
       });
-`, {
-    startsWith: ['fancy-app']
-  })).toMatchInlineSnapshot(`
+`,
+      {
+        startsWith: ["fancy-app"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
     "import { visit, currentURL } from '@ember/test-helpers';
     import { module, test } from 'qunit';
     let someFancyThing;
@@ -417,6 +421,4 @@ it('does not move type imports', () => {
       });
     });"
   `);
-
-
 });
