@@ -477,7 +477,6 @@ it("references imports in module space are then also move", () => {
   `);
 });
 
-
 it("declarations in module space that don't reference imports don't mave", () => {
   expect(
     transform(
