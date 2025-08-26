@@ -204,10 +204,9 @@ export default function qunitLazyImportsPlugin(babel, options) {
               return specifier.imported?.name === "module";
             });
 
-            assert(
-              state.moduleNode,
-              `Use of the qunit-lazy-imports plugin requires that you import { module } from 'qunit';`,
-            );
+            /**
+             * if we don't have a module import, its likely that we aren't in a file that runs tests.
+             */
           }
         }
 
