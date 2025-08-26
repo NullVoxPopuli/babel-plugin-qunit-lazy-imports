@@ -78,7 +78,91 @@ export default function qunitLazyImportsPlugin(babel, options) {
   }
 
   if (!options.startsWith && !options.matches) {
+    console.warn(`Using the noop qunit-lazy-imports plugin. If you meant to configure it, please pass either "startsWith" or "matches" options. Otherwise this plugin can be removed.`);
     return { name: "qunit-lazy-imports:noop", visitor: {} };
+  }
+
+  function isAboutToMove(source, state) {
+    if (!state.importsToMove) return false;
+    if (state.importsToMove.length === 0) return false;
+
+    let found = state.importsToMove.find((importToMove) => {
+      return importToMove.source === source;
+    });
+
+    return Boolean(found);
+  }
+
+  /**
+   * We only need to care about references that are outside of the qunit module()'s scope.
+   * These will later be moved into the beforeAll() hook.
+   */
+  function findReferencesToMove(path, state) {
+    if (!state.isUsingQunit) return;
+    let importSource = path.parent.source.value;
+    if (importSource === "qunit") return;
+    /**
+     * We hit the ImportDeclaration before we hit the specifiers.
+     */
+    if (!isAboutToMove(importSource, state)) return;
+
+    let bindings = path.scope.bindings;
+
+    let binding;
+    switch (path.type) {
+      case "ImportDefaultSpecifier": {
+        binding = bindings[path.node.local.name];
+        break;
+      }
+      case "ImportNamespaceSpecifier": {
+        binding = bindings[path.node.local.name];
+        break;
+      }
+      case "ImportSpecifier": {
+        binding = bindings[path.node.local.name];
+        break;
+      }
+    }
+    // somehow unused
+    if (!binding) return;
+
+    for (let ref of binding.referencePaths) {
+      // if referenced within the module() callback, we don't care
+      // else, we need to move it into the beforeAll
+      let parent = ref.parentPath;
+
+      while (parent) {
+        if (parent.node === state.moduleNode) {
+          break;
+        }
+
+        if (parent.type === "FunctionExpression") {
+          break;
+        }
+
+        if (parent.type === "ArrowFunctionExpression") {
+          break;
+        }
+        
+        if (parent.type === "Program") { 
+          switch (ref.type) {
+            case "VariableDeclarator": {
+              state.refsToMove ||= [];
+              state.refsToMove.push(ref);
+            }
+            default : {
+              console.log(ref.type);
+            }
+          }
+          
+          break;
+        }
+
+        parent = parent.parentPath;
+      }
+    }
+
+    console.log(binding);
   }
 
   return {
@@ -87,6 +171,18 @@ export default function qunitLazyImportsPlugin(babel, options) {
       ImportDeclaration(path, state) {
         if (path.node.source.value === "qunit") {
           state.isUsingQunit = true;
+
+          /**
+           * import { module } from 'qunit';
+           * (or import { module as qunitModuleWhateverName } from 'qunit';)
+           */
+          if (!state.moduleNode) {
+            state.moduleNode = path.node.specifiers.find((specifier) => {
+              return specifier.imported?.name === 'module';
+            });
+
+            assert(state.moduleNode, `Use of the qunit-lazy-imports plugin requires that you import { module } from 'qunit';`);
+          }
         }
 
         if (shouldMoveImport(path)) {
@@ -105,6 +201,15 @@ export default function qunitLazyImportsPlugin(babel, options) {
           state.importsToMove.push(moveThisImport);
         }
       },
+      ImportDefaultSpecifier(path, state) {
+        findReferencesToMove(path, state);
+      },
+      ImportNamespaceSpecifier(path, state) {
+        findReferencesToMove(path, state);
+      },
+      ImportSpecifier(path, state) {
+        findReferencesToMove(path, state);
+      },
       /**
        * if we have made changes
        */
@@ -122,6 +227,12 @@ export default function qunitLazyImportsPlugin(babel, options) {
             }
 
             moveThisImport.path.remove();
+          }
+
+          for (let ref of state.refsToMove || []) {
+            let declaration = template.ast(`let ${ref.node.id.declarations.map(decl => decl.id.name).join(', ')};`);
+            ref.insertBefore(declaration);
+            ref.remove();
           }
         },
       },
@@ -209,11 +320,18 @@ export default function qunitLazyImportsPlugin(babel, options) {
           })
           .join(",\n");
 
+        let declarationsBeforeAll = state.refsToMove?.map(ref => {
+          let str = ref.parentPath;
+          return str.getSource();
+        })?.join('\n') || '';
+
         let newCode = template.ast(`
           ${hooksName}.before(async () => {
             await Promise.all([
                 ${importsForBeforeAll}
             ]);
+            
+            ${declarationsBeforeAll}
           });
         `);
         body.unshift(newCode);

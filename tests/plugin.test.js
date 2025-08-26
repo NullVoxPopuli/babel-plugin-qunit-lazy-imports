@@ -428,7 +428,6 @@ it("references imports in module space are then also move", () => {
   expect(
     transformTS(
       `
-      import { visit, currentURL } from '@ember/test-helpers';
       import { module, test } from 'qunit';
       import someFancyThing from 'fancy-app/some/path';
       import type { Foo } from 'fancy-app/types';
@@ -441,10 +440,8 @@ it("references imports in module space are then also move", () => {
 
       module('Acceptance | test', function (hooks) {
         test('should work', async function (assert) {
-          await visit('/');
           assert.strictEqual(doit(0), 0);
           assert.strictEqual(oi, 0);
-          assert.strictEqual(currentURL(), '/');
           console.log(someFancyThing as Foo)
         });
       });
@@ -454,8 +451,7 @@ it("references imports in module space are then also move", () => {
       },
     ),
   ).toMatchInlineSnapshot(`
-    "import { visit, currentURL } from '@ember/test-helpers';
-    import { module, test } from 'qunit';
+    "import { module, test } from 'qunit';
     let someFancyThing;
     function doit(foo) {
       return 0;
@@ -469,10 +465,8 @@ it("references imports in module space are then also move", () => {
         })()]);
       });
       test('should work', async function (assert) {
-        await visit('/');
         assert.strictEqual(doit(0), 0);
         assert.strictEqual(oi, 0);
-        assert.strictEqual(currentURL(), '/');
         console.log(someFancyThing);
       });
     });"
