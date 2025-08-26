@@ -82,6 +82,25 @@ export default function qunitLazyImportsPlugin(babel, options) {
     return { name: "qunit-lazy-imports:noop", visitor: {} };
   }
 
+  let t = babel.types;
+  function buildBeforeAll(bodyExpressions, hookName) {
+    let body = (Array.isArray(bodyExpressions) ? bodyExpressions : [bodyExpressions]).map(x => {
+      let assignments = x.getSource().replaceAll('const ', '').replaceAll('let ', '').replaceAll('var ', '');
+
+      return template.ast(assignments);
+    });
+    return t.callExpression(
+      t.memberExpression(
+        t.identifier(hookName), 
+        t.identifier("before")
+      ),
+      [
+        t.arrowFunctionExpression([/* args */], t.blockStatement(body), true)
+      ]
+    
+    );
+  }
+
   function isAboutToMove(source, state) {
     if (!state.importsToMove) return false;
     if (state.importsToMove.length === 0) return false;
@@ -110,14 +129,8 @@ export default function qunitLazyImportsPlugin(babel, options) {
 
     let binding;
     switch (path.type) {
-      case "ImportDefaultSpecifier": {
-        binding = bindings[path.node.local.name];
-        break;
-      }
-      case "ImportNamespaceSpecifier": {
-        binding = bindings[path.node.local.name];
-        break;
-      }
+      case "ImportDefaultSpecifier":
+      case "ImportNamespaceSpecifier": 
       case "ImportSpecifier": {
         binding = bindings[path.node.local.name];
         break;
@@ -131,38 +144,38 @@ export default function qunitLazyImportsPlugin(babel, options) {
       // else, we need to move it into the beforeAll
       let parent = ref.parentPath;
 
+      let declaration;
       while (parent) {
         if (parent.node === state.moduleNode) {
+          declaration = null;
           break;
         }
 
         if (parent.type === "FunctionExpression") {
+          declaration = null;
           break;
         }
 
         if (parent.type === "ArrowFunctionExpression") {
+          declaration = null;
           break;
+        }
+
+        if (parent.type === 'VariableDeclaration') {
+          declaration = parent;
         }
         
         if (parent.type === "Program") { 
-          switch (ref.type) {
-            case "VariableDeclarator": {
-              state.refsToMove ||= [];
-              state.refsToMove.push(ref);
-            }
-            default : {
-              console.log(ref.type);
-            }
-          }
-          
+        if (declaration) {
+            state.refsToMove ||= [];
+            state.refsToMove.push(declaration);
+        }
           break;
         }
 
         parent = parent.parentPath;
       }
     }
-
-    console.log(binding);
   }
 
   return {
@@ -230,8 +243,10 @@ export default function qunitLazyImportsPlugin(babel, options) {
           }
 
           for (let ref of state.refsToMove || []) {
-            let declaration = template.ast(`let ${ref.node.id.declarations.map(decl => decl.id.name).join(', ')};`);
-            ref.insertBefore(declaration);
+            ref.node.declarations.forEach(declaration => {
+              let newDeclaration = template.ast(`let ${declaration.id.name}`);
+              ref.insertBefore(newDeclaration);
+            })
             ref.remove();
           }
         },
@@ -320,20 +335,26 @@ export default function qunitLazyImportsPlugin(babel, options) {
           })
           .join(",\n");
 
-        let declarationsBeforeAll = state.refsToMove?.map(ref => {
-          let str = ref.parentPath;
-          return str.getSource();
-        })?.join('\n') || '';
+        let refsToMove = state.refsToMove || [];
+        let declarationsBeforeAll = refsToMove?.map(ref => {
+          // if (ref.type !== "VariableDeclarator") {
+          //   throw new Error(`Expected ref to be a VariableDeclarator, but got: ${ref.type}`);
+          // }
+
+          return ref;
+        });
 
         let newCode = template.ast(`
           ${hooksName}.before(async () => {
             await Promise.all([
                 ${importsForBeforeAll}
             ]);
-            
-            ${declarationsBeforeAll}
           });
         `);
+        if (declarationsBeforeAll && declarationsBeforeAll.length > 0) {
+          let hook = buildBeforeAll(declarationsBeforeAll, hooksName);
+          body.unshift(hook);
+        }
         body.unshift(newCode);
       },
     },
