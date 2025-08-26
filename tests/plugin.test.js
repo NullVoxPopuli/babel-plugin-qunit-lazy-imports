@@ -363,23 +363,26 @@ module('name a', function (hooks) {
       { startsWith: ["my-app"] },
     ),
   ).toMatchInlineSnapshot(`
-  "import { module, test } from 'qunit';
-  import { currentURL, visit } from '@ember/test-helpers';
-  let idForWorkspace;
-  const THE_ID = idForWorkspace('foo');
-  module('name a', function (hooks) {
-    hooks.before(async () => {
-      await Promise.all([(async () => {
-        let module = await import('my-app/utils/workspace');
-        idForWorkspace = module.idForWorkspace;
-      })()]);
-    });
-    setupApplicationTest(hooks);
-    hooks.beforeEach(async function () {
-      console.log(THE_ID);
-    });
-  });"
-`);
+    "import { module, test } from 'qunit';
+    import { currentURL, visit } from '@ember/test-helpers';
+    let idForWorkspace;
+    let THE_ID;
+    module('name a', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('my-app/utils/workspace');
+          idForWorkspace = module.idForWorkspace;
+        })()]);
+      });
+      hooks.before(async () => {
+        THE_ID = idForWorkspace('foo');
+      })
+      setupApplicationTest(hooks);
+      hooks.beforeEach(async function () {
+        console.log(THE_ID);
+      });
+    });"
+  `);
 });
 
 it("does not move type imports", () => {
