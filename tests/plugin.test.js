@@ -423,7 +423,6 @@ it("does not move type imports", () => {
   `);
 });
 
-
 it("references imports in module space are then also move", () => {
   expect(
     transformTS(

@@ -78,26 +78,36 @@ export default function qunitLazyImportsPlugin(babel, options) {
   }
 
   if (!options.startsWith && !options.matches) {
-    console.warn(`Using the noop qunit-lazy-imports plugin. If you meant to configure it, please pass either "startsWith" or "matches" options. Otherwise this plugin can be removed.`);
+    console.warn(
+      `Using the noop qunit-lazy-imports plugin. If you meant to configure it, please pass either "startsWith" or "matches" options. Otherwise this plugin can be removed.`,
+    );
     return { name: "qunit-lazy-imports:noop", visitor: {} };
   }
 
   let t = babel.types;
   function buildBeforeAll(bodyExpressions, hookName) {
-    let body = (Array.isArray(bodyExpressions) ? bodyExpressions : [bodyExpressions]).map(x => {
-      let assignments = x.getSource().replaceAll('const ', '').replaceAll('let ', '').replaceAll('var ', '');
+    let body = (
+      Array.isArray(bodyExpressions) ? bodyExpressions : [bodyExpressions]
+    ).map((x) => {
+      let assignments = x
+        .getSource()
+        .replaceAll("const ", "")
+        .replaceAll("let ", "")
+        .replaceAll("var ", "");
 
       return template.ast(assignments);
     });
     return t.callExpression(
-      t.memberExpression(
-        t.identifier(hookName), 
-        t.identifier("before")
-      ),
+      t.memberExpression(t.identifier(hookName), t.identifier("before")),
       [
-        t.arrowFunctionExpression([/* args */], t.blockStatement(body), true)
-      ]
-    
+        t.arrowFunctionExpression(
+          [
+            /* args */
+          ],
+          t.blockStatement(body),
+          true,
+        ),
+      ],
     );
   }
 
@@ -130,7 +140,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
     let binding;
     switch (path.type) {
       case "ImportDefaultSpecifier":
-      case "ImportNamespaceSpecifier": 
+      case "ImportNamespaceSpecifier":
       case "ImportSpecifier": {
         binding = bindings[path.node.local.name];
         break;
@@ -161,15 +171,15 @@ export default function qunitLazyImportsPlugin(babel, options) {
           break;
         }
 
-        if (parent.type === 'VariableDeclaration') {
+        if (parent.type === "VariableDeclaration") {
           declaration = parent;
         }
-        
-        if (parent.type === "Program") { 
-        if (declaration) {
+
+        if (parent.type === "Program") {
+          if (declaration) {
             state.refsToMove ||= [];
             state.refsToMove.push(declaration);
-        }
+          }
           break;
         }
 
@@ -191,10 +201,13 @@ export default function qunitLazyImportsPlugin(babel, options) {
            */
           if (!state.moduleNode) {
             state.moduleNode = path.node.specifiers.find((specifier) => {
-              return specifier.imported?.name === 'module';
+              return specifier.imported?.name === "module";
             });
 
-            assert(state.moduleNode, `Use of the qunit-lazy-imports plugin requires that you import { module } from 'qunit';`);
+            assert(
+              state.moduleNode,
+              `Use of the qunit-lazy-imports plugin requires that you import { module } from 'qunit';`,
+            );
           }
         }
 
@@ -243,10 +256,10 @@ export default function qunitLazyImportsPlugin(babel, options) {
           }
 
           for (let ref of state.refsToMove || []) {
-            ref.node.declarations.forEach(declaration => {
+            ref.node.declarations.forEach((declaration) => {
               let newDeclaration = template.ast(`let ${declaration.id.name}`);
               ref.insertBefore(newDeclaration);
-            })
+            });
             ref.remove();
           }
         },
@@ -336,7 +349,7 @@ export default function qunitLazyImportsPlugin(babel, options) {
           .join(",\n");
 
         let refsToMove = state.refsToMove || [];
-        let declarationsBeforeAll = refsToMove?.map(ref => {
+        let declarationsBeforeAll = refsToMove?.map((ref) => {
           // if (ref.type !== "VariableDeclarator") {
           //   throw new Error(`Expected ref to be a VariableDeclarator, but got: ${ref.type}`);
           // }
