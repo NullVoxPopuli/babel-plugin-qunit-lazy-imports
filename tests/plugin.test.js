@@ -476,3 +476,42 @@ it("references imports in module space are then also move", () => {
     });"
   `);
 });
+
+
+it("declarations in module space that don't reference imports don't mave", () => {
+  expect(
+    transform(
+      `import { module, test } from 'qunit';
+      import someFancyThing from 'fancy-app/some/path';
+
+      const oi = 2;
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          assert.strictEqual(oi, 2);
+          console.log(someFancyThing)
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
+    "import { module, test } from 'qunit';
+    let someFancyThing;
+    const oi = 2;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      test('should work', async function (assert) {
+        assert.strictEqual(oi, 2);
+        console.log(someFancyThing);
+      });
+    });"
+  `);
+});
