@@ -514,3 +514,54 @@ it("declarations in module space that don't reference imports don't mave", () =>
     });"
   `);
 });
+
+it("declarations in module space reference via structure", () => {
+  expect(
+    transform(
+      `import { module, test } from 'qunit';
+      import someFancyThing from 'fancy-app/some/path';
+
+      const oi = 2;
+
+      const hi = {
+        someFancyThing,
+        oi,
+      }
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          assert.strictEqual(hi, 2);
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app"],
+      },
+    ),
+  ).toMatchInlineSnapshot();
+});
+
+it("dependent declarations in module space reference via structure", () => {
+  expect(
+    transform(
+      `import { module, test } from 'qunit';
+      import someFancyThing from 'fancy-app/some/path';
+
+      const hi = {
+        someFancyThing,
+     }
+
+      const oi = hi.someFancyThing;
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          assert.strictEqual(oi, 2);
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app"],
+      },
+    ),
+  ).toMatchInlineSnapshot();
+});
