@@ -538,7 +538,29 @@ it("declarations in module space reference via structure", () => {
         startsWith: ["fancy-app"],
       },
     ),
-  ).toMatchInlineSnapshot();
+  ).toMatchInlineSnapshot(`
+    "import { module, test } from 'qunit';
+    let someFancyThing;
+    const oi = 2;
+    let hi;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      hooks.before(async () => {
+        hi = {
+          someFancyThing,
+          oi
+        };
+      })
+      test('should work', async function (assert) {
+        assert.strictEqual(hi, 2);
+      });
+    });"
+  `);
 });
 
 it("dependent declarations in module space reference via structure", () => {
@@ -563,5 +585,26 @@ it("dependent declarations in module space reference via structure", () => {
         startsWith: ["fancy-app"],
       },
     ),
-  ).toMatchInlineSnapshot();
+  ).toMatchInlineSnapshot(`
+    "import { module, test } from 'qunit';
+    let someFancyThing;
+    let hi;
+    const oi = hi.someFancyThing;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      hooks.before(async () => {
+        hi = {
+          someFancyThing
+        };
+      })
+      test('should work', async function (assert) {
+        assert.strictEqual(oi, 2);
+      });
+    });"
+  `);
 });
