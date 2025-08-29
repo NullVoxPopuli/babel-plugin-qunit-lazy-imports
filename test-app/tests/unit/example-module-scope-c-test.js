@@ -10,10 +10,18 @@ function assertOne() {
   QUnit.assert.strictEqual(numbers.one, 1);
 }
 
-module('module-scope-b', function (hooks) {
+module('module-scope-c (1)', function (hooks) {
   setupTest(hooks);
 
   test('working', function () {
     assertOne();
+  });
+});
+
+module('module-scope-c (2)', function (hooks) {
+  setupTest(hooks);
+
+  test('working', function (assert) {
+    assert.strictEqual(n.one, 1);
   });
 });
