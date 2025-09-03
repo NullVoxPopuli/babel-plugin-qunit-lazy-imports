@@ -78,7 +78,114 @@ export default function qunitLazyImportsPlugin(babel, options) {
   }
 
   if (!options.startsWith && !options.matches) {
+    console.warn(
+      `Using the noop qunit-lazy-imports plugin. If you meant to configure it, please pass either "startsWith" or "matches" options. Otherwise this plugin can be removed.`,
+    );
     return { name: "qunit-lazy-imports:noop", visitor: {} };
+  }
+
+  let t = babel.types;
+  function buildBeforeAll(bodyExpressions, hookName) {
+    let body = (
+      Array.isArray(bodyExpressions) ? bodyExpressions : [bodyExpressions]
+    ).map((x) => {
+      let assignments = x
+        .getSource()
+        .replaceAll("const ", "")
+        .replaceAll("let ", "")
+        .replaceAll("var ", "");
+
+      return template.ast(assignments);
+    });
+    return t.callExpression(
+      t.memberExpression(t.identifier(hookName), t.identifier("before")),
+      [
+        t.arrowFunctionExpression(
+          [
+            /* args */
+          ],
+          t.blockStatement(body),
+          true,
+        ),
+      ],
+    );
+  }
+
+  function isAboutToMove(source, state) {
+    if (!state.importsToMove) return false;
+    if (state.importsToMove.length === 0) return false;
+
+    let found = state.importsToMove.find((importToMove) => {
+      return importToMove.source === source;
+    });
+
+    return Boolean(found);
+  }
+
+  /**
+   * We only need to care about references that are outside of the qunit module()'s scope.
+   * These will later be moved into the beforeAll() hook.
+   */
+  function findReferencesToMove(path, state) {
+    if (!state.isUsingQunit) return;
+    let importSource = path.parent.source.value;
+    if (importSource === "qunit") return;
+    /**
+     * We hit the ImportDeclaration before we hit the specifiers.
+     */
+    if (!isAboutToMove(importSource, state)) return;
+
+    let bindings = path.scope.bindings;
+
+    let binding;
+    switch (path.type) {
+      case "ImportDefaultSpecifier":
+      case "ImportNamespaceSpecifier":
+      case "ImportSpecifier": {
+        binding = bindings[path.node.local.name];
+        break;
+      }
+    }
+    // somehow unused
+    if (!binding) return;
+
+    for (let ref of binding.referencePaths) {
+      // if referenced within the module() callback, we don't care
+      // else, we need to move it into the beforeAll
+      let parent = ref.parentPath;
+
+      let declaration;
+      while (parent) {
+        if (parent.node === state.moduleNode) {
+          declaration = null;
+          break;
+        }
+
+        if (parent.type === "FunctionExpression") {
+          declaration = null;
+          break;
+        }
+
+        if (parent.type === "ArrowFunctionExpression") {
+          declaration = null;
+          break;
+        }
+
+        if (parent.type === "VariableDeclaration") {
+          declaration = parent;
+        }
+
+        if (parent.type === "Program") {
+          if (declaration) {
+            state.refsToMove ||= [];
+            state.refsToMove.push(declaration);
+          }
+          break;
+        }
+
+        parent = parent.parentPath;
+      }
+    }
   }
 
   return {
@@ -87,6 +194,20 @@ export default function qunitLazyImportsPlugin(babel, options) {
       ImportDeclaration(path, state) {
         if (path.node.source.value === "qunit") {
           state.isUsingQunit = true;
+
+          /**
+           * import { module } from 'qunit';
+           * (or import { module as qunitModuleWhateverName } from 'qunit';)
+           */
+          if (!state.moduleNode) {
+            state.moduleNode = path.node.specifiers.find((specifier) => {
+              return specifier.imported?.name === "module";
+            });
+
+            /**
+             * if we don't have a module import, its likely that we aren't in a file that runs tests.
+             */
+          }
         }
 
         if (shouldMoveImport(path)) {
@@ -105,6 +226,15 @@ export default function qunitLazyImportsPlugin(babel, options) {
           state.importsToMove.push(moveThisImport);
         }
       },
+      ImportDefaultSpecifier(path, state) {
+        findReferencesToMove(path, state);
+      },
+      ImportNamespaceSpecifier(path, state) {
+        findReferencesToMove(path, state);
+      },
+      ImportSpecifier(path, state) {
+        findReferencesToMove(path, state);
+      },
       /**
        * if we have made changes
        */
@@ -122,6 +252,14 @@ export default function qunitLazyImportsPlugin(babel, options) {
             }
 
             moveThisImport.path.remove();
+          }
+
+          for (let ref of state.refsToMove || []) {
+            ref.node.declarations.forEach((declaration) => {
+              let newDeclaration = template.ast(`let ${declaration.id.name}`);
+              ref.insertBefore(newDeclaration);
+            });
+            ref.remove();
           }
         },
       },
@@ -209,6 +347,15 @@ export default function qunitLazyImportsPlugin(babel, options) {
           })
           .join(",\n");
 
+        let refsToMove = state.refsToMove || [];
+        let declarationsBeforeAll = refsToMove?.map((ref) => {
+          // if (ref.type !== "VariableDeclarator") {
+          //   throw new Error(`Expected ref to be a VariableDeclarator, but got: ${ref.type}`);
+          // }
+
+          return ref;
+        });
+
         let newCode = template.ast(`
           ${hooksName}.before(async () => {
             await Promise.all([
@@ -216,6 +363,10 @@ export default function qunitLazyImportsPlugin(babel, options) {
             ]);
           });
         `);
+        if (declarationsBeforeAll && declarationsBeforeAll.length > 0) {
+          let hook = buildBeforeAll(declarationsBeforeAll, hooksName);
+          body.unshift(hook);
+        }
         body.unshift(newCode);
       },
     },

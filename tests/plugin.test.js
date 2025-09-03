@@ -363,23 +363,26 @@ module('name a', function (hooks) {
       { startsWith: ["my-app"] },
     ),
   ).toMatchInlineSnapshot(`
-  "import { module, test } from 'qunit';
-  import { currentURL, visit } from '@ember/test-helpers';
-  let idForWorkspace;
-  const THE_ID = idForWorkspace('foo');
-  module('name a', function (hooks) {
-    hooks.before(async () => {
-      await Promise.all([(async () => {
-        let module = await import('my-app/utils/workspace');
-        idForWorkspace = module.idForWorkspace;
-      })()]);
-    });
-    setupApplicationTest(hooks);
-    hooks.beforeEach(async function () {
-      console.log(THE_ID);
-    });
-  });"
-`);
+    "import { module, test } from 'qunit';
+    import { currentURL, visit } from '@ember/test-helpers';
+    let idForWorkspace;
+    let THE_ID;
+    module('name a', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('my-app/utils/workspace');
+          idForWorkspace = module.idForWorkspace;
+        })()]);
+      });
+      hooks.before(async () => {
+        THE_ID = idForWorkspace('foo');
+      })
+      setupApplicationTest(hooks);
+      hooks.beforeEach(async function () {
+        console.log(THE_ID);
+      });
+    });"
+  `);
 });
 
 it("does not move type imports", () => {
@@ -418,6 +421,189 @@ it("does not move type imports", () => {
         await visit('/');
         assert.strictEqual(currentURL(), '/');
         console.log(someFancyThing);
+      });
+    });"
+  `);
+});
+
+it("references imports in module space are then also move", () => {
+  expect(
+    transformTS(
+      `import { module, test } from 'qunit';
+      import someFancyThing from 'fancy-app/some/path';
+      import type { Foo } from 'fancy-app/types';
+
+      const oi = someFancyThing();
+
+      function doit(foo: Foo) {
+        return 0;      
+      }
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          assert.strictEqual(doit(0), 0);
+          assert.strictEqual(oi, 0);
+          console.log(someFancyThing as Foo)
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
+    "import { module, test } from 'qunit';
+    let someFancyThing;
+    let oi;
+    function doit(foo) {
+      return 0;
+    }
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      hooks.before(async () => {
+        oi = someFancyThing();
+      })
+      test('should work', async function (assert) {
+        assert.strictEqual(doit(0), 0);
+        assert.strictEqual(oi, 0);
+        console.log(someFancyThing);
+      });
+    });"
+  `);
+});
+
+it("declarations in module space that don't reference imports don't mave", () => {
+  expect(
+    transform(
+      `import { module, test } from 'qunit';
+      import someFancyThing from 'fancy-app/some/path';
+
+      const oi = 2;
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          assert.strictEqual(oi, 2);
+          console.log(someFancyThing)
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
+    "import { module, test } from 'qunit';
+    let someFancyThing;
+    const oi = 2;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      test('should work', async function (assert) {
+        assert.strictEqual(oi, 2);
+        console.log(someFancyThing);
+      });
+    });"
+  `);
+});
+
+it("declarations in module space reference via structure", () => {
+  expect(
+    transform(
+      `import { module, test } from 'qunit';
+      import someFancyThing from 'fancy-app/some/path';
+
+      const oi = 2;
+
+      const hi = {
+        someFancyThing,
+        oi,
+      }
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          assert.strictEqual(hi, 2);
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
+    "import { module, test } from 'qunit';
+    let someFancyThing;
+    const oi = 2;
+    let hi;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      hooks.before(async () => {
+        hi = {
+          someFancyThing,
+          oi
+        };
+      })
+      test('should work', async function (assert) {
+        assert.strictEqual(hi, 2);
+      });
+    });"
+  `);
+});
+
+it("dependent declarations in module space reference via structure", () => {
+  expect(
+    transform(
+      `import { module, test } from 'qunit';
+      import someFancyThing from 'fancy-app/some/path';
+
+      const hi = {
+        someFancyThing,
+     }
+
+      const oi = hi.someFancyThing;
+
+      module('Acceptance | test', function (hooks) {
+        test('should work', async function (assert) {
+          assert.strictEqual(oi, 2);
+        });
+      });
+`,
+      {
+        startsWith: ["fancy-app"],
+      },
+    ),
+  ).toMatchInlineSnapshot(`
+    "import { module, test } from 'qunit';
+    let someFancyThing;
+    let hi;
+    const oi = hi.someFancyThing;
+    module('Acceptance | test', function (hooks) {
+      hooks.before(async () => {
+        await Promise.all([(async () => {
+          let module = await import('fancy-app/some/path');
+          someFancyThing = module.default;
+        })()]);
+      });
+      hooks.before(async () => {
+        hi = {
+          someFancyThing
+        };
+      })
+      test('should work', async function (assert) {
+        assert.strictEqual(oi, 2);
       });
     });"
   `);
